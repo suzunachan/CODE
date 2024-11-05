@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -8,6 +8,7 @@ namespace Osaki__Final_Project
     {
         static List<string> completedQuizzes = new List<string>();
         static Dictionary<string, int> quizScores = new Dictionary<string, int>(); // Store quiz names and scores
+        const string filePath = "users.txt";
 
         static void Main(string[] args)
         {
@@ -23,16 +24,109 @@ namespace Osaki__Final_Project
 
         static bool Login()
         {
-            string correctUsername = "suzunavachary";
-            string correctPassword = "123456";
+            Console.WriteLine("\nWelcome! Please select an option:");
+            Console.WriteLine("[1] Log In");
+            Console.WriteLine("[2] Register");
+            Console.Write("Enter your choice: ");
+            string choice = Console.ReadLine();
 
+            if (choice == "1")
+            {
+                return PerformLogin();
+            }
+            else if (choice == "2")
+            {
+                Register();
+                return Login(); // Prompt login again after registration
+            }
+            else
+            {
+                Console.WriteLine("Invalid choice. Exiting program...");
+                return false;
+            }
+        }
+
+        static bool PerformLogin()
+        {
             Console.Write("Enter Username: ");
-            string username = Console.ReadLine();
+            string username = Console.ReadLine().Trim();
 
             Console.Write("Enter Password: ");
-            string password = Console.ReadLine();
+            string password = ReadPassword().Trim();
 
-            return username == correctUsername && password == correctPassword;
+            // Check if username and password are correct
+            bool isValidUser = ValidateUser(username, password);
+            Console.WriteLine(isValidUser ? "Login successful!" : "Incorrect username or password.");
+            return isValidUser;
+        }
+
+        static void Register()
+        {
+            Console.Write("Create a Username: ");
+            string username = Console.ReadLine().Trim();
+
+            Console.Write("Create a Password: ");
+            string password = ReadPassword().Trim();
+
+            // Check if username already exists
+            if (File.Exists(filePath))
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    if (parts[0] == username)
+                    {
+                        Console.WriteLine("Username already exists. Please try again.");
+                        return;
+                    }
+                }
+            }
+
+            // Save the new user to the file
+            string userEntry = $"{username},{password}";
+            File.AppendAllText(filePath, userEntry + Environment.NewLine);
+            Console.WriteLine("\nRegistration successful! You can now log in.");
+        }
+
+        static bool ValidateUser(string username, string password)
+        {
+            if (!File.Exists(filePath)) return false;
+
+            string[] lines = File.ReadAllLines(filePath);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(',');
+                if (parts[0].Trim() == username && parts[1].Trim() == password)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static string ReadPassword()
+        {
+            string password = string.Empty;
+            ConsoleKeyInfo key;
+
+            do
+            {
+                key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                {
+                    password += key.KeyChar;
+                    Console.Write("*");
+                }
+                else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password = password.Substring(0, password.Length - 1);
+                    Console.Write("\b \b");
+                }
+            } while (key.Key != ConsoleKey.Enter);
+
+            Console.WriteLine();
+            return password;
         }
 
         static void Subjects()
@@ -41,7 +135,7 @@ namespace Osaki__Final_Project
             {
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
                 Console.BackgroundColor = ConsoleColor.White;
-                Console.WriteLine("        [Choose Subject]        ");
+                Console.WriteLine("\n        [Choose Subject]        ");
                 Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
                 Console.WriteLine("[1] Computer Programming 1.     ");
                 Console.WriteLine("[2] Introduction to Computing.  ");
@@ -125,17 +219,31 @@ namespace Osaki__Final_Project
             {
                 "1. An error in the syntax of a sequence of characters",
                 "2. A step-by-step procedure or formula for solving a problem.",
-                "3. Plays a crucial role in simplifying complex processes and ensuring clear communication."
+                "3. Plays a crucial role in simplifying complex processes and ensuring clear communication.",
+                "4. Declared with the bool keyword and can only take the values true or false",
+                "5. The ________ expression is evaluated once",
+                "6. It is also possible to place a loop inside another loop",
+                "7. It stores single characters, such as 'a' or 'B'. Char values are surrounded by single quotes",
+                "8. It stores text, such as Hello World. String values are surrounded by double quotes",
+                "9. It stores values with two states: true or false",
+                "10. It is use to specify a new condition to test, if the first condition is false",
             };
             string[] options =
             {
                 "[A] Logical Error [B] Syntax Error [C] Human Error",
                 "[A] Pseudocode [B] Flowchart [C] Algorithm",
-                "[A] Flowchart [B] Algorithm [C] Pseudocode"
+                "[A] Flowchart [B] Algorithm [C] Pseudocode",
+                "[A] Boolean [B] Integer [C] Double",
+                "[A] Break [B] Case [C] Switch",
+                "[A] For Loop [B] Nested Loop [C] While Loop",
+                "[A] Double [B] Int [C] Char",
+                "[A] String [B] Bool [C] Int",
+                "[A] Char [B] Bool [C] Double",
+                "[A] Else [B] Else If [C] If",
             };
             string[] correctAns =
             {
-                "B", "C", "A"
+                "B", "C", "A", "A", "C", "B", "C", "A", "B", "B"
             };
 
             for (int i = 0; i < questions.Length; i++)
@@ -173,17 +281,21 @@ namespace Osaki__Final_Project
             {
                 "1. A programmable electronic device that can accept input; store data; and retrieve, process and output information.",
                 "2. Provides a list of commands and functions that guide hardware through various processes.",
-                "3. A collection of relevant data"
+                "3. A collection of relevant data",
+                "4. What does MIS refers to?",
+                "3. "
             };
             string[] options =
             {
                 "[A] Information System [B] Computer System [C] None",
                 "[A] Software [B] Hardware [C] Both A and C",
-                "[A] Software [B] Hardware [C] Database"
+                "[A] Software [B] Hardware [C] Database",
+                "[A] Management Industry [B] Management Information System [C] Managing Information Security",
+                "[A] "
             };
             string[] correctAns =
             {
-                "B", "A", "C"
+                "B", "A", "C", "B"
             };
 
             for (int i = 0; i < questions.Length; i++)
