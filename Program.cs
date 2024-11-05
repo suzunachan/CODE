@@ -6,14 +6,15 @@ namespace Osaki__Final_Project
 {
     internal class Program
     {
-        static List<string> completedQuizzes = new List<string>();
-        static Dictionary<string, int> quizScores = new Dictionary<string, int>(); // Store quiz names and scores
-        const string filePath = "users.txt";
+        static List<string> completedQuizzes = new List<string>(); // Stores completed quizzes
+        static Dictionary<string, int> quizScores = new Dictionary<string, int>(); // Stores quiz names and scores
+        const string filePath = "users.txt"; // Stores usernames and passwords
 
         static void Main(string[] args)
         {
             if (Login())
             {
+                Console.Clear();
                 Subjects();
             }
             else
@@ -282,8 +283,13 @@ namespace Osaki__Final_Project
                 "1. A programmable electronic device that can accept input; store data; and retrieve, process and output information.",
                 "2. Provides a list of commands and functions that guide hardware through various processes.",
                 "3. A collection of relevant data",
-                "4. What does MIS refers to?",
-                "3. "
+                "4. What does MIS stands for?",
+                "5. What does HTML stands for?",
+                "6. What does SDLC means?",
+                "7. These are examples of Input Devices except for what?",
+                "8. These are examples of Output Devices except for what?",
+                "9. The CPU is known as the _____ of the computer",
+                "10. These are examples of Operating Systems except for what?"
             };
             string[] options =
             {
@@ -291,11 +297,16 @@ namespace Osaki__Final_Project
                 "[A] Software [B] Hardware [C] Both A and C",
                 "[A] Software [B] Hardware [C] Database",
                 "[A] Management Industry [B] Management Information System [C] Managing Information Security",
-                "[A] "
+                "[A] Hypertext Markup Language [B] High Top Management Learning [C] Hypertext Marking Language",
+                "[A] Standard Development Language Cooperative [B] Simple Design Language Converter [C] System Development Life Cycle",
+                "[A] Speaker [B] Mouse [C] Keyboard",
+                "[A] Speaker [B] Touchpad [C] Monitor",
+                "[A] Brain [B] Heart [C] Eyes",
+                "[A] Swift [B] MacOS [C] Android"
             };
             string[] correctAns =
             {
-                "B", "A", "C", "B"
+                "B", "A", "C", "B", "A", "C", "A", "B", "B", "A"
             };
 
             for (int i = 0; i < questions.Length; i++)
