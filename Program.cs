@@ -1,358 +1,453 @@
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Remoting.Services;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Threading;
 
-namespace HIPO
+namespace Osaki__Final_Project
 {
     internal class Program
     {
+        static List<string> completedQuizzes = new List<string>();
+        static Dictionary<string, int> quizScores = new Dictionary<string, int>(); 
+        const string filePath = "users.txt";
+        const string scoresFilePath = "scores.txt"; 
+
+        static string currentUser = ""; 
+
         static void Main(string[] args)
         {
-            SystemMenu();
-        }
-        static void SystemMenu()
-        {
-            int choice;
+            LoadScores(); 
 
-            Console.WriteLine("[1] Age Category");
-            Console.WriteLine("[2] Odd or Even");
-            Console.WriteLine("[3] Odd and Even");
-            Console.WriteLine("[4] Sum of Even 1 - 50");
-            Console.WriteLine("[5] FizzBuzz!");
-            Console.WriteLine("[6] Multiplication Table");
-            Console.WriteLine("[7] Discount Table");
-            Console.WriteLine("[8] Multiplication Table Generator");
-            Console.WriteLine("[9] Converter");
-            Console.WriteLine("[10] Minimum Maximum");
-            Console.WriteLine("[11] Positive, Negative, and Zero");
-            Console.WriteLine("[12] EXIT");
-            choice = Convert.ToInt32(Console.ReadLine());
-
-            switch (choice)
+            while (true)
             {
-                case 1:
-                    AgeCategory();
-                    break;
-                case 2:
-                    OddorEven();
-                    break;
-                case 3:
-                    OddandEven();
-                    break;
-                case 4:
-                    SumofEven();
-                    break;
-                case 5:
-                    FizzBuzz();
-                    break;
-                case 6:
-                    MultiplicationTable();
-                    break;
-                case 7:
-                    DiscountTable();
-                    break;
-                case 8:
-                    MultTable();
-                    break;
-                case 9:
-                    Converter();
-                    break;
-                case 10:
-                    MinMax();
-                    break;
-                case 11:
-                    PosNegZero();
-                    break;
-                case 12:    
-                    break;
-            }
-        }
-        static void AgeCategory()
-        {
-            int age;
-
-            Console.WriteLine("Your Age: ");
-            age = Convert.ToInt32(Console.ReadLine());
-
-            if (age < 13)
-            {
-                Console.WriteLine("Child");
-            }
-            else if (age > 12 && age < 20)
-            {
-                Console.WriteLine("Teenager");
-            }
-            else
-            {
-                Console.WriteLine("Adult");
-            }
-        }
-        static void OddandEven()
-        {
-            int i;
-            int num;
-
-            Console.WriteLine("Input Number: ");
-            num = Convert.ToInt32(Console.ReadLine());
-
-            for (i = 1; i <= num; i++)
-            {
-                if (i % 2 == 0)
+                if (Login())
                 {
-                    Console.WriteLine(i);
+                    Subjects(); 
                 }
             }
-            for (i = 1; i <= num; i++)
-            {
-                if (i % 2 != 0)
-                {
-                    Console.WriteLine(i);
-                }
-
-            }
-
-
         }
-        static void OddorEven()
+
+        static bool Login()
         {
-            int num;
-
-            Console.WriteLine("Input Number: ");
-            num = Convert.ToInt32(Console.ReadLine());
-
-            if (num % 2 == 0)
+            while (true)
             {
-                Console.WriteLine("Even");
-            }
-            else
-            {
-                Console.WriteLine("Odd");
-            }
-        }
-        static void SumofEven()
-        {
-            int i;
-            int sum = 0;
+                Console.Clear();
+                Console.WriteLine("\nWelcome! Please select an option:");
+                Console.WriteLine("[1] Log In");
+                Console.WriteLine("[2] Register");
 
+                Console.Write("Enter your choice: ");
+                string choice = Console.ReadLine();
 
-            Console.WriteLine("The SUM of all EVEN number is 1 - 50 is ");
-            for (i = 1; i <= 50; i++)
-            {
-                if (i % 2 == 0)
+                if (choice == "1")
                 {
-                    sum += i;
+                    if (PerformLogin())
+                    {
+                        LoadScores();
+                        return true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Incorrect username or password. Redirecting to login...");
+                        System.Threading.Thread.Sleep(2000);
+                    }
                 }
-            }
-            Console.WriteLine(sum);
-        }
-        static void FizzBuzz()
-        {
-            //write a C# program that prints members from 1 to 100. For multiplies of 3,
-            //print "Fizz" instead of the number, and for multiples of 5, print "Buzz". For numbers
-            //that are multiples of both 3 and 5 print "FizzBuzz"
-
-            int i;
-
-            for (i = 1; i <= 100; i++)
-            {
-                if ((i % 3 == 0) && (i % 5 == 0))
+                else if (choice == "2")
                 {
-                    Console.WriteLine("FizzBUzz");
-                }
-                else if (i % 3 == 0)
-                {
-                    Console.WriteLine("Fizz");
-                }
-                else if (i % 5 == 0)
-                {
-                    Console.WriteLine("Buzz");
+                    Register();
                 }
                 else
                 {
-                    Console.WriteLine(i);
+                    Console.WriteLine("Invalid choice. Redirecting to login...");
+                    System.Threading.Thread.Sleep(2000);
                 }
             }
         }
-        static void MultiplicationTable()
-        {
-            int x, cols, rows;
 
+        static bool PerformLogin()
+        {
+            Console.Write("Enter Username: ");
+            string username = Console.ReadLine().Trim();
+
+            Console.Write("Enter Password: ");
+            string password = ReadPassword().Trim();
+
+            bool isValidUser = ValidateUser(username, password);
+            if (isValidUser)
+            {
+                Console.WriteLine("Login successful!");
+                Thread.Sleep(1000);
+                currentUser = username;
+            }
+            return isValidUser;
+        }
+
+        static void Register()
+        {
+            Console.Write("Create a Username: ");
+            string username = Console.ReadLine().Trim();
+
+            Console.Write("Create a Password: ");
+            string password = ReadPassword().Trim();
+
+            if (File.Exists(filePath))
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    if (parts[0] == username)
+                    {
+                        Console.WriteLine("Username already exists. Please try again.");
+                        return;
+                    }
+                }
+            }
+
+            string userEntry = $"{username},{password}";
+            File.AppendAllText(filePath, userEntry + Environment.NewLine);
+            Console.WriteLine("\nRegistration successful! You can now log in.");
+        }
+
+        static bool ValidateUser(string username, string password)
+        {
+            if (!File.Exists(filePath)) return false;
+
+            string[] lines = File.ReadAllLines(filePath);
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(',');
+                if (parts[0].Trim() == username && parts[1].Trim() == password)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static string ReadPassword()
+        {
+            string password = string.Empty;
+            ConsoleKeyInfo key;
+
+            do
+            {
+                key = Console.ReadKey(true);
+                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                {
+                    password += key.KeyChar;
+                    Console.Write("*");
+                }
+                else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password = password.Substring(0, password.Length - 1);
+                    Console.Write("\b \b");
+                }
+            } while (key.Key != ConsoleKey.Enter);
+
+            Console.WriteLine();
+            return password;
+        }
+
+        static void Subjects()
+        {
             while (true)
             {
-                Console.WriteLine("Multiplication Table");
-                Console.WriteLine("-----------------------------------------");
-                Console.WriteLine("How many do you want?");
-                Console.WriteLine("-----------------------------------------");
-                x = Convert.ToInt32(Console.ReadLine());
-
-                rows = 1;
-
-                while (rows <= x)
-                {
-                    cols = 1;
-
-                    do
-                    {
-                        Console.Write("{0 , 6}", rows * cols);
-                        cols++;
-                    }
-
-                    while (cols <= x);
-                    Console.WriteLine();
-                    rows++;
-                }
-
-                Console.WriteLine("Do you want to continue?  [Yes] [No] ");
-                if (Console.ReadLine().ToString().ToLower().Contains("no"))
-                {
-                    break;
-                }
                 Console.Clear();
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+                Console.BackgroundColor = ConsoleColor.White;
+                Console.WriteLine("\n        [Choose Subject]        ");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.WriteLine("[1] Computer Programming 1.     ");
+                Console.WriteLine("[2] Introduction to Computing.  ");
+                Console.WriteLine("[3] View Scores of a User.      ");
+                Console.WriteLine("[4] Log Out.                    ");
+                Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = ConsoleColor.Black;
+
+                int choice;
+                bool validChoice = int.TryParse(Console.ReadLine(), out choice);
+
+                if (!validChoice || choice < 1 || choice > 4)
+                {
+                    Console.WriteLine("Invalid choice. Please enter a valid number (1-4).");
+                    continue;
+                }
+
+                switch (choice)
+                {
+                    case 1:
+                        if (completedQuizzes.Contains("Computer Programming 1"))
+                        {
+                            Console.WriteLine("\nYou have already completed this quiz.");
+                            Thread.Sleep(1200);
+                            Console.Clear();
+                        }
+                        else
+                        {
+                            Console.Clear();
+                            ComProg();
+                        }
+                        break;
+
+                    case 2:
+                        if (completedQuizzes.Contains("Introduction to Computing"))
+                        {
+                            Console.WriteLine("\nYou have already completed this quiz.");
+                            Thread.Sleep(1200);
+                            Console.Clear();
+                        }
+                        else
+                        {
+                            Console.Clear();
+                            IntroToComp();
+                        }
+                        break;
+
+                    case 3:
+                        ViewUserScores();
+                        break;
+
+                    case 4:
+                        Console.WriteLine("Logging out...");
+                        currentUser = "";
+                        return;
+                }
             }
         }
-        static void DiscountTable()
+
+        static void ViewUserScores()
         {
-            int x;
+            Console.Clear();
+            Console.WriteLine("~~~~~~~ All Users' Scores ~~~~~~~");
 
-            Console.WriteLine("Enter Amount: ");
-            x = int.Parse(Console.ReadLine());
+            bool foundScores = false;
 
-            decimal discount;
-            decimal totalAmount;
-            decimal discAmount;
-
-            if (x >= 1000)
+            if (File.Exists(scoresFilePath))
             {
-                discount = 20M;
-            }
-            else if ((x < 1000) && (x >= 500))
-            {
-                discount = 15M;
+                string[] lines = File.ReadAllLines(scoresFilePath);
 
-            }
-            else if ((x < 500) && (x >= 100))
-            {
-                discount = 10M;
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+
+                    if (parts.Length == 3)
+                    {
+                        string username = parts[0].Trim();
+                        string quizName = parts[1].Trim();
+                        string score = parts[2].Trim();
+
+                        Console.WriteLine($"User: {username} | Quiz: {quizName} | Score: {score} points");
+                        foundScores = true;
+                    }
+                }
+
+                if (!foundScores)
+                {
+                    Console.WriteLine("No scores found for any user.");
+                }
             }
             else
             {
-                discount = 0M;
+                Console.WriteLine("Scores file not found.");
             }
 
-            discAmount = discount * x / 100;
-            totalAmount = x - discAmount;
-
-            Console.WriteLine("\nDiscount Table");
-            Console.WriteLine("----------------------------");
-            Console.WriteLine($"Original Amount: $" + x);
-            Console.WriteLine($"Number of Discount: " + discount + "%");
-            Console.WriteLine($"Amount of Discount: $" + discAmount);
-            Console.WriteLine($"Total Amount: $" + totalAmount);
+            Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            Console.WriteLine("Press any key to go back to the main menu.");
+            Console.ReadKey();
+            Console.Clear();
         }
-        static void MultTable()
+
+        static void SaveScores()
         {
-            Console.WriteLine("Input Table Number: ");
-            int v = int.Parse(Console.ReadLine());
+            bool scoreUpdated = false;
+            List<string> lines = new List<string>();
 
-            int i = 1;
-
-            while (i <= v)
+            if (File.Exists(scoresFilePath))
             {
-                Console.WriteLine($"\nMultiplication Table no: {i}");
-
-
-                int n = 1;
-                while (n <= 10)
-                {
-                    int result = i * n;
-                    Console.WriteLine($"{i} x {n} = {result}");
-                    n++;
-                }
-                i++;
-            }
-        }
-        static void Converter()
-        {
-            Console.WriteLine("Enter number of temperature: ");
-            int n = int.Parse(Console.ReadLine());
-
-
-            for (int i = 1; i <= n; i++)
-            {
-                Console.Write($"Enter temperature {i} in Celsius: ");
-                int c = int.Parse(Console.ReadLine());
-
-                double temp = (c * 9 / 5) + 32;
-                Console.WriteLine($"Temperature {i} in Fahrenheit: {temp:F2}");
+                lines = new List<string>(File.ReadAllLines(scoresFilePath));
             }
 
-        }
-        static void MinMax()
-        {
-            int n;
-            int min = int.MaxValue;
-            int max = int.MinValue;
-
-            Console.WriteLine("Enter a series of number (enter -1 to finish): ");
-
-            while (true)
+            foreach (var quiz in quizScores)
             {
-                Console.Write("Enter a number: ");
-                n = int.Parse(Console.ReadLine());
-
-                if (n == - 1)
+                bool found = false;
+                for (int i = 0; i < lines.Count; i++)
                 {
-                    break;
-                }
-
-                if (n < min)
-                {
-                    min = n;
-                }
-                if (n > max)
-                {
-                    max = n;
-                }
-            }
-            Console.WriteLine($"The lowest number is {min}");
-            Console.WriteLine($"The highest number is {max}");
-        }
-        static void PosNegZero()
-        {
-            while (true)
-            {
-                int i = 1;
-
-                do
-                {
-                    Console.WriteLine("Input an Integer: ");
-                    int n = int.Parse(Console.ReadLine());
-
-                    if (n == -999)
+                    string[] parts = lines[i].Split(',');
+                    if (parts[0] == currentUser && parts[1] == quiz.Key)
                     {
-                        return;
-                    }
-
-                    if (n < 0 && n > -999)
-                    {
-                        Console.WriteLine("Negative");
-                    }
-                    else if (n == 0)
-                    {
-                        Console.WriteLine("Zero");
-                    }
-                    else if (n > 0)
-                    {
-                        Console.WriteLine("Positive");
+                        lines[i] = $"{currentUser},{quiz.Key},{quiz.Value}";
+                        found = true;
+                        scoreUpdated = true;
+                        break;
                     }
                 }
-                while (true);
+
+                if (!found)
+                {
+                    lines.Add($"{currentUser},{quiz.Key},{quiz.Value}");
+                    scoreUpdated = true;
+                }
             }
+
+            if (scoreUpdated)
+            {
+                File.WriteAllLines(scoresFilePath, lines);
+            }
+        }
+
+
+        static void LoadScores()
+        {
+            if (File.Exists(scoresFilePath))
+            {
+                string[] lines = File.ReadAllLines(scoresFilePath);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    if (parts.Length == 3 && int.TryParse(parts[2], out int score) && parts[0] == currentUser)
+                    {
+                        quizScores[parts[1]] = score;
+                        completedQuizzes.Add(parts[1]);
+                    }
+                }
+            }
+        }
+
+
+        static void ComProg()
+        {
+            int score = 0;
+
+            string[] questions =
+            {
+                "1. An error in the syntax of a sequence of characters",
+                "2. A step-by-step procedure or formula for solving a problem.",
+                "3. Plays a crucial role in simplifying complex processes and ensuring clear communication.",
+                "4. Declared with the bool keyword and can only take the values true or false",
+                "5. The ________ expression is evaluated once",
+                "6. It is also possible to place a loop inside another loop",
+                "7. It stores single characters, such as 'a' or 'B'. Char values are surrounded by single quotes",
+                "8. It stores text, such as Hello World. String values are surrounded by double quotes",
+                "9. It stores values with two states: true or false",
+                "10. It is use to specify a new condition to test, if the first condition is false",
+            };
+            string[] options =
+            {
+                "[A] Logical Error [B] Syntax Error [C] Human Error",
+                "[A] Pseudocode [B] Flowchart [C] Algorithm",
+                "[A] Flowchart [B] Algorithm [C] Pseudocode",
+                "[A] Boolean [B] Integer [C] Double",
+                "[A] Break [B] Case [C] Switch",
+                "[A] For Loop [B] Nested Loop [C] While Loop",
+                "[A] Double [B] Int [C] Char",
+                "[A] String [B] Bool [C] Int",
+                "[A] Char [B] Bool [C] Double",
+                "[A] Else [B] Else If [C] If",
+            };
+            string[] correctAns =
+            {
+                "B", "C", "A", "A", "C", "B", "C", "A", "B", "B"
+            };
+
+            for (int i = 0; i < questions.Length; i++)
+            {
+                Console.WriteLine(questions[i]);
+                Console.WriteLine(options[i]);
+
+                Console.Write("Write Answer: ");
+                string userAns = Console.ReadLine().ToUpper();
+
+                if (userAns == correctAns[i])
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Correct Answer!\n");
+                    score++;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Incorrect! The correct answer is {correctAns[i]}\n");
+                }
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            quizScores["Computer Programming 1"] = score;
+            completedQuizzes.Add("Computer Programming 1");
+            SaveScores();
+
+            Console.WriteLine($"Your score for Computer Programming 1: {score}");
+            Console.Write("Press any key to return to Main Menu.");
+            Console.ReadKey();
+        }
+
+        static void IntroToComp()
+        {
+            int score = 0;
+
+            string[] questions =
+            {
+                "1. A programmable electronic device that can accept input; store data; and retrieve, process and output information.",
+                "2. Provides a list of commands and functions that guide hardware through various processes.",
+                "3. A collection of relevant data",
+                "4. What does MIS refers to?",
+                "5. It is the protection of the underlying networking infastracture from unauthorized access, misuse, or theft.",
+                "6. It is Network Security device that monitors incoming and outgoing network traffic.",
+                "7. This means that users can deny having performed an action e.g., sending or receiving data",
+                "8. It is an accidental consequences that complicates things.",
+                "9. It is the most important software that runs on a computer",
+                "10. What does SDLC stands for?"
+            };
+            string[] options =
+            {
+                "[A] Information System [B] Computer System [C] None",
+                "[A] Software [B] Hardware [C] Both A and C",
+                "[A] Software [B] Hardware [C] Database",
+                "[A] Management Industry [B] Management Information System [C] Managing Information Security",
+                "[A] Network Security [B] Operating System [C]Kerberos",
+                "[A] VPN [B] Access Control [C] Firewalls",
+                "[A] Spoofing Identity [B] Repudiation [C] Denial of Service",
+                "[A] Rammification [B] Wireless Security [C] Behavioral Analytics",
+                "[A] Operating System [B] Computer [C] Network Security",
+                "[A] System Development Life Cycle [B] System Developmental Life Cycle [C] Security Device Life Cycle"
+            };
+            string[] correctAns =
+            {
+                "B", "A", "C", "B", "A", "C", "B", "A", "C", "A"
+            };
+
+            for (int i = 0; i < questions.Length; i++)
+            {
+                Console.WriteLine(questions[i]);
+                Console.WriteLine(options[i]);
+
+                Console.Write("Write Answer: ");
+                string userAns = Console.ReadLine().ToUpper();
+
+                if (userAns == correctAns[i])
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("Correct Answer!\n");
+                    score++;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Incorrect! The correct answer is {correctAns[i]}\n");
+                }
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+
+            quizScores["Introduction to Computing"] = score;
+            completedQuizzes.Add("Introduction to Computing");
+            SaveScores();
+
+            Console.WriteLine($"Your score for Introduction to Computing: {score}");
+            Console.Write("Press any key to return to Main Menu.");
+            Console.ReadKey();
         }
     }
 }
+
+
